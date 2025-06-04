@@ -81,10 +81,11 @@ To start using this template, follow these steps:
 and the [About](patches/build.gradle.kts#L5-L11))
 3. Update dependencies in the [libs.versions.toml](gradle/libs.versions.toml) file
 4. [Create a pass-phrased GPG master key and subkey](https://mikeross.xyz/create-gpg-key-pair-with-subkeys/)
-   1. Add the private key as a secret named [GPG_PRIVATE_KEY](.github/workflows/release.yml#L52) to your repository
-   2. Add the passphrase as a secret named [GPG_PASSPHRASE](.github/workflows/release.yml#L53) to your repository
-   3. Add the fingerprint of the GPG subkey as a secret named [GPG_FINGERPRINT](.github/workflows/release.yml#L54) to your repository
-5. Set up the [README.md](README.md) file[^1] (e.g, title, description, license, summary of the patches
+5. Add the following GitHub secrets
+   1. [GPG_PRIVATE_KEY](.github/workflows/release.yml#L52): this is the [armored version of your GPG key](https://github.com/crazy-max/ghaction-import-gpg?tab=readme-ov-file#prerequisites) (`gpg --armor --export-secret-key yourmail@mail.com`)
+   2. [GPG_PASSPHRASE](.github/workflows/release.yml#L53): this is the passphrase you choosed while creating your GPG key
+   3. [GPG_FINGERPRINT](.github/workflows/release.yml#L54) (optional): this is the fingerprint of the GPG subkey (`gpg --list-secret-keys --keyid-format LONG --with-subkey-fingerprint yourmail@mail.com`) 
+6. Set up the [README.md](README.md) file[^1] (e.g, title, description, license, summary of the patches
 that are included in the repository), the [issue templates](.github/ISSUE_TEMPLATE)[^2]  and the [contribution guidelines](CONTRIBUTING.md)[^3]
 
 🎉 You are now ready to start creating patches!
