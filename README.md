@@ -81,8 +81,8 @@ To start using this template, follow these steps:
 and the [About](patches/build.gradle.kts#L5-L11))
 3. Update dependencies in the [libs.versions.toml](gradle/libs.versions.toml) file
 4. [Create a pass-phrased GPG master key and subkey](https://mikeross.xyz/create-gpg-key-pair-with-subkeys/)
-5. Add the following GitHub secrets according to [these instructions](https://github.com/crazy-max/ghaction-import-gpg?tab=readme-ov-file#prerequisites):
-   1. [GPG_PRIVATE_KEY](.github/workflows/release.yml#L52): The GPG key
+5. Add the following GitHub secrets:
+   1. [GPG_PRIVATE_KEY](.github/workflows/release.yml#L52): The ASCII-armored GPG key
    2. [GPG_PASSPHRASE](.github/workflows/release.yml#L53): The passphrase for the GPG key
 6. Add the following GitHub variables
    1. [GPG_FINGERPRINT](.github/workflows/release.yml#L54): The fingerprint of the GPG key
