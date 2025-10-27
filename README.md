@@ -84,7 +84,7 @@ and the [About](patches/build.gradle.kts#L5-L11))
 5. Add the following GitHub secrets according to [these instructions](https://github.com/crazy-max/ghaction-import-gpg?tab=readme-ov-file#prerequisites):
    1. [GPG_PRIVATE_KEY](.github/workflows/release.yml#L52): The GPG key
    2. [GPG_PASSPHRASE](.github/workflows/release.yml#L53): The passphrase for the GPG key
-6. Add the following GitHub variable
+6. Add the following GitHub variables
    1. [GPG_FINGERPRINT](.github/workflows/release.yml#L54): The fingerprint of the GPG key
 7. Set up the [README.md](README.md) file[^1] (e.g, title, description, license, summary of the patches
 that are included in the repository), the [issue templates](.github/ISSUE_TEMPLATE)[^2]  and the [contribution guidelines](CONTRIBUTING.md)[^3]
