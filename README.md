@@ -128,7 +128,7 @@ You can find the contribution guidelines [here](CONTRIBUTING.md).
 To build ReVanced Patches template,
 you can follow the [ReVanced documentation](https://github.com/ReVanced/revanced-documentation).
 
-## 📜 Licence
+## 📜 License
 
 ReVanced Patches template is licensed under the GPLv3 licence.
 Please see the [license file](LICENSE) for more information.
