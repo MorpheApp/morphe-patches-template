@@ -27,6 +27,10 @@ The repository can have multiple patches, and patches from other repositories ca
 
 For an example repository, see [Morphe Patches](https://github.com/MorpheApp/morphe-patches).
 
+Morphe Patches template is based off the prior work of [ReVanced](https://github.com/ReVanced/revanced-patches-template).
+All modifications made by Morphe, along with their dates, can be found in the Git history.
+
+
 ## 🚀 Get started
 
 To start using this template, follow these steps:
