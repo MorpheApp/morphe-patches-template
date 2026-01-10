@@ -27,6 +27,10 @@ The repository can have multiple patches, and patches from other repositories ca
 
 For an example repository, see [Morphe Patches](https://github.com/MorpheApp/morphe-patches).
 
+Morphe Patches template is based off the prior work of [ReVanced](https://github.com/ReVanced/revanced-patches-template).
+All modifications made by Morphe, along with their dates, can be found in the Git history.
+
+
 ## 🚀 Get started
 
 To start using this template, follow these steps:
@@ -43,6 +47,8 @@ and the [About](patches/build.gradle.kts#L5-L11))
    1. [GPG_FINGERPRINT](.github/workflows/release.yml#L51): The fingerprint of the GPG key
 7. Set up the [README.md](README.md) file[^1] (e.g, title, description, license, summary of the patches
 that are included in the repository), the [issue templates](.github/ISSUE_TEMPLATE)[^2]  and the [contribution guidelines](CONTRIBUTING.md)[^3]
+8. Choose a name for your patches project. Keep in mind you must use a unique name that does not imply or suggest authorship by the Morphe open source project.
+   See the [NOTICE](NOTICE) for details.
 
 🎉 You are now ready to start creating patches!
 
