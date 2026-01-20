@@ -2,12 +2,18 @@ group = "app.morphe"
 
 patches {
     about {
-        name = "Morphe Patches template"
-        description = "Patches template for Morphe"
+        name = "XYZ Patches for use with Morphe"
+        description = "Example patches"
         source = "git@github.com:MorpheApp/morphe-patches-template.git"
-        author = "Morphe"
-        contact = "contact@morphe.software"
+        author = "Awesome dev"
+        contact = "na"
         website = "https://morphe.software"
-        license = "Additional conditions under GPL section 7 apply: attribution and project name restrictions. See LICENSE file."
+        license = "GPLv3"
+    }
+}
+
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xcontext-parameters")
     }
 }
