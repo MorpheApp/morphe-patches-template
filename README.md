@@ -38,16 +38,9 @@ To start using this template, follow these steps:
 1. [Create a new repository using this template](https://github.com/new?template_name=morphe-patches-template&template_owner=MorpheApp)
 2. Set up the [build.gradle.kts](patches/build.gradle.kts) file (Specifically, the [group of the project](patches/build.gradle.kts#L1),
 and the [About](patches/build.gradle.kts#L5-L11))
-3. Update dependencies in the [libs.versions.toml](gradle/libs.versions.toml) file
-4. [Create a pass-phrased GPG master key and subkey](https://mikeross.xyz/create-gpg-key-pair-with-subkeys/)
-5. Add the following GitHub secrets:
-   1. [GPG_PRIVATE_KEY](.github/workflows/release.yml#L49): The ASCII-armored GPG key
-   2. [GPG_PASSPHRASE](.github/workflows/release.yml#L50): The passphrase for the GPG key
-6. Add the following GitHub variables:
-   1. [GPG_FINGERPRINT](.github/workflows/release.yml#L51): The fingerprint of the GPG key
-7. Set up the [README.md](README.md) file[^1] (e.g, title, description, license, summary of the patches
+3. Set up the [README.md](README.md) file[^1] (e.g, title, description, license, summary of the patches
 that are included in the repository), the [issue templates](.github/ISSUE_TEMPLATE)[^2]  and the [contribution guidelines](CONTRIBUTING.md)[^3]
-8. Choose a name for your patches project. Keep in mind you must use a unique name that does not imply or suggest authorship by the Morphe open source project.
+4. Choose a name for your patches project. Keep in mind you must use a unique name that does not imply or suggest authorship by the Morphe open source project.
    See the [NOTICE](NOTICE) for details.
 
 🎉 You are now ready to start creating patches!
@@ -55,12 +48,6 @@ that are included in the repository), the [issue templates](.github/ISSUE_TEMPLA
 [^1]: [Example README.md file](https://github.com/MorpheApp/morphe-patches/blob/main/README.md)
 [^2]: [Example issue templates](https://github.com/MorpheApp/morphe-patches/tree/main/.github/ISSUE_TEMPLATE)
 [^3]: [Example contribution guidelines](https://github.com/MorpheApp/morphe-patches/blob/main/CONTRIBUTING.md)
-
-## 🔘 Optional steps
-
-You can also add the following things to the repository:
-
-- API documentation, if you want to publish your patches as a library
 
 ## 🧑‍💻 Usage
 
