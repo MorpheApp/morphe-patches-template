@@ -12,32 +12,35 @@ import com.android.tools.smali.dexlib2.Opcode
 
 // Declaring fingerprints as classes is not required, but if a fingerprint fails
 // to match then the exception stack trace will include the fingerprint name.
-object AdLoaderFingerprint : Fingerprint(
+object VariousTicketFingerprint : Fingerprint(
     // Exact access flags
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    accessFlags = listOf(AccessFlags.PUBLIC),
     // Return type is matched using String.startsWith()
-    returnType = "Z",
+    returnType = "Ljava/lang/String;",
     // Declared parameters are matched using String.startsWith()
     // Non obfuscated classes should be declared using the full class name.
     // While obfuscated class names must be declared only using the object type
     // Since obfuscated names change between releases.
     // Last parameter is simply `L` since it's an obfuscated class object.
-    parameters = listOf("Ljava/lang/String;", "I", "L"),
+    parameters = listOf(),
 
     // Instruction filters.
     filters = listOf(
         // Filter 1.
         fieldAccess(
             // Restrict to field get operation.
-            opcode = Opcode.IGET,
+            opcode = Opcode.IGET_OBJECT,
             // "this" refers to the class the method was declared in.
             // It does not include superclasses or subclasses.
             definingClass = "this",
-            type = "Ljava/util/Map;"
+            name = "validFrom",
+            type = "Ljava/lang/String;"
         ),
 
+        opcode(Opcode.RETURN_OBJECT, MatchAfterImmediately()),
+
         // Filter 2.
-        string("showBannerAds"),
+        /*string("ulgowy"),
 
         // Filter 3.
         methodCall(
@@ -53,10 +56,10 @@ object AdLoaderFingerprint : Fingerprint(
         literal(1337),
 
         // Filter 6.
-        opcode(Opcode.IF_EQ),
+        opcode(Opcode.IF_EQ),*/
     ),
 
     custom = { _, classDef ->
-        classDef.type == "Lcom/some/app/ads/AdsLoader;"
+        classDef.type == "Lzbiletem/zbiletem/model/ticket/various/VariousTicket;"
     }
 )

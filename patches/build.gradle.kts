@@ -21,6 +21,8 @@ kotlin {
 dependencies {
     // Used by JsonGenerator.
     implementation(libs.gson)
+    // Required due to smali, or build fails. Can be removed once smali is bumped.
+    implementation(libs.guava)
 }
 
 tasks {
