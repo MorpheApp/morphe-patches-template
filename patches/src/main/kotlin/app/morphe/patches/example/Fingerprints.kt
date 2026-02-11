@@ -10,6 +10,14 @@ import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
+private const val className = "Lzbiletem/zbiletem/model/ticket/various/VariousTicket;"
+
+object TestFingerprint : Fingerprint (
+    custom = { method, classDef ->
+        method.name == "getActiveTill" && classDef.type == className
+    }
+)
+
 // Declaring fingerprints as classes is not required, but if a fingerprint fails
 // to match then the exception stack trace will include the fingerprint name.
 object VariousTicketFingerprint : Fingerprint(
