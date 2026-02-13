@@ -1,4 +1,4 @@
-package app.morphe.patches.example
+package app.template.patches.example
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation.*
