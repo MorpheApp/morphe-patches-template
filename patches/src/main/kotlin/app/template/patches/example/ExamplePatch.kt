@@ -1,9 +1,9 @@
-package app.morphe.patches.example
+package app.template.patches.example
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 
-private const val EXTENSION_CLASS_DESCRIPTOR = "Lapp/morphe/extension/ExamplePatch;"
+private const val EXTENSION_CLASS_DESCRIPTOR = "Lapp/template/extension/ExamplePatch;"
 
 @Suppress("unused")
 val examplePatch = bytecodePatch(
@@ -12,7 +12,7 @@ val examplePatch = bytecodePatch(
 ) {
     compatibleWith("com.example.app"("1.0.0"))
 
-    extendWith("extensions/extension.rve")
+    extendWith("extensions/extension.mpp")
 
     // Business logic of the patch to disable ads in the app.
     execute {

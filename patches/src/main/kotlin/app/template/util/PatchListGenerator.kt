@@ -30,7 +30,7 @@
   * applicable to this file.
  */
 
-package app.morphe.util
+package app.template.util
 
 import app.morphe.patcher.patch.Patch
 import app.morphe.patcher.patch.loadPatchesFromJar
