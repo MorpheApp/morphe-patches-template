@@ -4,5 +4,6 @@ import app.morphe.patcher.fingerprint
 
 internal val isDCIMFolderBackupControlDisabled = fingerprint {
     returns("Z")
-    strings("/dcim", "/mars_files/")
+    parameters("L")
+    strings("DCIM folder backup control is disabled")
 }
