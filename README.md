@@ -45,6 +45,15 @@ The `publish` task depends on the `buildAndroid` task, so it will be run automat
 
 ## 📚 Everything else
 
+Optionally you can include a button/link in this readme that users can click to add your 
+patches to Morphe (update the links below after creating your new patches repo):
+
+#### How to use these patches
+
+Click here to add these patches to Morphe: https://morphe.software/add-source?github=xyz-user/xyz-patches
+
+Or manually add this repository url as a patch source in Morphe: https://github.com/xyz-user/xyz-patches
+
 ### 📙 Contributing
 
 Thank you for considering contributing to Morphe Patches template.  
