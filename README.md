@@ -41,7 +41,6 @@ via the [release.yml](.github/workflows/release.yml) workflow, which is also res
 and updating the version of Morphe Patches. It is triggered by pushing to the `dev` or `main` branch.
 The workflow uses the `publish` task to publish the release of Morphe Patches.
 - The `buildAndroid` task is used to build Morphe Patches so that it can be used on Android.
-The `publish` task depends on the `buildAndroid` task, so it will be run automatically when publishing a release.
 
 
 ## 🤓 Tips
@@ -49,14 +48,12 @@ The `publish` task depends on the `buildAndroid` task, so it will be run automat
   for more examples of creating patches and fingerprints.
 - Do not manually edit any generated files such as: `patches-list.json`, `patches-bundle.json`, `CHANGELOG.md`.
   These files will be automatically updated in the release action.
-- Do not force push any semantic release commits, or you will break the release. To 'redo' the last release then:
+- Do not force push any semantic release commits or you will break the release. To 'redo' the last release then:
   - Git drop the last dev/main semantic release commit you want to redo.
   - Delete the release from the release area of this repo and delete the tag   
   - Make any other changes you wish to do
   - Force push dev/main branch
   - A new replacement release will be created by `release.yml`
-- Do not manually edit any generated files: `patches-list.json`, `patches-bundle.json`, `CHANGELOG.md`.
-  These files will be automatically updated by `release.yml`
 
 
 ## 📚 Everything else
