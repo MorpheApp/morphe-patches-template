@@ -1,7 +1,7 @@
 extension {
-    name = "extensions/extension.rve"
+    name = "extensions/extension.mpe"
 }
 
 android {
-    namespace = "app.revanced.extension"
+    namespace = "app.template.extension"
 }
