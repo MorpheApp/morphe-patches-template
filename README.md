@@ -3,6 +3,20 @@
 Template repository for Morphe Patches.
 
 &nbsp;
+## 🩹 Patches list
+
+<!-- PATCHES_START -->
+
+<!-- Do not modify this section by hand. The patch list is generated when release.yml creates a new release
+     or when update_patches_readme.yml is manually run from the GitHub actions page. 
+     If you wish to manually keep this list updated then remove the PATCHES_START and PATCHES_END 
+     comment blocks above and below. -->
+
+#### A list of your patches will be automatically shown here after your first patches release is created.
+     
+<!-- PATCHES_END -->
+
+&nbsp;
 ## ❓ About
 
 This is a template to create a new Morphe Patches repository.
