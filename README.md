@@ -5,12 +5,15 @@ Template repository for Morphe Patches.
 &nbsp;
 ## 🩹 Patches list
 
-<!-- PATCHES_START -->
+<!-- PATCHES_START EXPANDED -->
 
 <!-- Do not modify this section by hand. The patch list is generated when release.yml creates a new release
-     or when update_patches_readme.yml is manually run from the GitHub actions page. 
+     or when update_patches_readme.yml is manually run from the GitHub actions page.
+     
+     If you wish for the patches list to be collapsed, then remove the word 'EXPANDED' from the comment tag above.
+
      If you wish to manually keep this list updated then remove the PATCHES_START and PATCHES_END 
-     comment blocks above and below. -->
+     comment blocks entirely. -->
 
 #### A list of your patches will be automatically shown here after your first patches release is created.
      
