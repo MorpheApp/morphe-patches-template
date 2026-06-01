@@ -1,13 +1,13 @@
-group = "app.template"
+group = "kiraio.morphe"
 
 patches {
     about {
-        name = "UserXYZ Patches"
-        description = "Patches for apps I like"
-        source = "git@github.com:UserXYZ/morphe-patches.git"
-        author = "Awesome dev"
-        contact = "na"
-        website = "na"
+        name = "Lain Patches"
+        description = "Patches for Morphe."
+        source = "git@github.com:kiraio-moe/Lain-Patches.git"
+        author = "kiraio"
+        contact = "itsyuukunz@gmail.com"
+        website = "https://kiraio.my.id"
         license = "GPLv3"
     }
 }
@@ -25,6 +25,7 @@ val patchListGeneratorClasspath: Configuration by configurations.creating
 dependencies {
     compileOnly(libs.gson)
     patchListGeneratorClasspath(libs.gson)
+    implementation(libs.morphe.patches.library)
 }
 
 tasks {

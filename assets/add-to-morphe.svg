@@ -1,0 +1,34 @@
+<svg width="240" height="56" viewBox="0 0 240 56"
+    xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#1E5AA8"/>
+            <stop offset="100%" stop-color="#00AFAE"/>
+        </linearGradient>
+    </defs>
+
+    <!-- Button background -->
+    <rect x="0" y="0" width="240" height="56" rx="12" ry="12"
+        fill="url(#gradient)"/>
+
+    <!-- Download icon -->
+    <g transform="translate(32 18) scale(0.85)"
+        stroke="white"
+        stroke-width="2"
+        fill="none"
+        stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+    </g>
+
+    <!-- Text -->
+    <text x="72" y="35"
+        fill="white"
+        font-size="16"
+        font-weight="600"
+        font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Ubuntu,sans-serif">
+        Add to Morphe
+    </text>
+</svg>
