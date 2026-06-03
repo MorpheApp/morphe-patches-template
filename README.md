@@ -1,15 +1,17 @@
 <div align="center">
+    <img src="./patches-bundle.png" width="20%"/>
     <h1>𝙻𝙰!𝙽 Patches</h1>
-    <p>Zenify your apps!</p>
+    <b>Zenify your apps!</b>
 </div>
-<hr>
 
 Morphe patches for apps that I personally use. Please be considerate when requesting a patch.
-I've limited knowledge on Android RE and making this patches on free time.
+I've limited knowledge on Android RE and making this patches on my free time.
 
-<center>
-<img src="./assets/add-to-morphe.svg" alt="Add to Morphe Manager"><a href="https://morphe.software/add-source?github=kiraio-moe/Lain-Patches"/></img>
-</center>
+<div align="center">
+    <a href="https://morphe.software/add-source?github=kiraio-moe/Lain-Patches">
+      <img src="./assets/add-to-morphe.svg" alt="Add to Morphe Manager"/>
+    </a>
+</div>
 
 ## 🩹 Patches list
 
