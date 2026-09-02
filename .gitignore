@@ -128,6 +128,3 @@ node_modules/
 # Ignore IDEA files
 .idea/
 local.properties
-
-# Ignore gradle files
-gradle.properties
