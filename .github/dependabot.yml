@@ -1,4 +1,10 @@
 version: 2
+registries:
+  github-packages:
+    type: maven-repository
+    url: https://maven.pkg.github.com/MorpheApp/registry
+    token: ${{ secrets.GITHUB_TOKEN }}
+
 updates:
   - package-ecosystem: github-actions
     labels: []
@@ -24,3 +30,5 @@ updates:
     target-branch: dev
     schedule:
       interval: monthly
+    registries:
+      - github-packages
