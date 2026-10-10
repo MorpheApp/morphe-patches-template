@@ -64,7 +64,7 @@ To develop and release your Patches using this template:
 ## 🤓 Tips
 - See the [patcher documentation](https://github.com/MorpheApp/morphe-patcher/blob/main/docs/1_patcher_intro.md) for more examples of creating patches and fingerprints.
 - Do not use AI to create new release scripts. The `release.yml` here already handles everything.
-  If you need omething custom with your releases then modify the existing `release.yml`
+  If you need something custom with your releases then modify the existing `release.yml`
   and `.releaserc` instead of writing everything new from scratch.
 - Do not manually edit or manually commit any generated files such as: `patches-list.json`,
   `patches-bundle.json`, `CHANGELOG.md`.  These files will be automatically updated by `release.yml`.
