@@ -60,7 +60,7 @@ def pkg_label(name, form_factor):
 # The same package name can be used by different apps for each form factor.
 # JSON structure: compatiblePackages is a list of objects with
 # { packageName, name, formFactor, targets: [{ version, isExperimental, description }] }
-by_pkg = {}   # (packageName, formFactor) -> { name, emoji, patches, targets }
+by_pkg = {}   # (packageName, formFactor) -> { name, package, emoji, patches, targets }
 universal = {}
 
 for patch in data["patches"]:
@@ -78,6 +78,7 @@ for patch in data["patches"]:
         if key not in by_pkg:
             by_pkg[key] = {
                 "name":    pkg_label(name, form_factor),
+                "package": pkg,
                 "emoji":   pkg_emoji(form_factor),
                 "patches": {},
                 "targets": pkg_entry.get("targets", []),
@@ -143,19 +144,20 @@ def versions_table(targets):
     return "\n".join(rows)
 
 
-def spoiler(label, count, targets, tbl, expanded=False):
+def spoiler(label, package, count, targets, tbl, expanded=False):
     """Wrap a patches table in a <details> spoiler with a versions sub-table.
     If expanded=True, the spoiler is open by default (for repos with few patches).
     """
     noun = "patch" if count == 1 else "patches"
     vtbl = versions_table(targets)
+    package_line = f"**Package name:** `{package}`\n\n"
     versions_section = f"**🎯 Supported versions:**\n\n{vtbl}\n\n" if vtbl else ""
     tag = "<details open>" if expanded else "<details>"
     return f"""{tag}
 <summary>{label}&nbsp;&nbsp;•&nbsp;&nbsp;{count} {noun}</summary>
 <br>
 
-{versions_section}{tbl}
+{package_line}{versions_section}{tbl}
 
 </details>"""
 
@@ -172,7 +174,7 @@ def build_content(expanded=False):
     for entry in by_pkg.values():
         patches = list(entry["patches"].values())
         label   = f"{entry['emoji']} {entry['name']}"
-        lines.append(spoiler(label, len(patches), entry["targets"], patches_table(patches), expanded))
+        lines.append(spoiler(label, entry["package"], len(patches), entry["targets"], patches_table(patches), expanded))
         lines.append("")
 
     # Universal patches (no specific app)
