@@ -1,13 +1,13 @@
 package app.template.patches.example
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import app.template.patches.shared.Constants.COMPATIBILITY_EXAMPLE
 
 private const val EXTENSION_CLASS = "Lapp/template/extension/ExamplePatch;"
 
 @Suppress("unused")
-val examplePatch = bytecodePatch(
+val examplePatch = patch(
     name = "Example Patch",
     description = "Example patch to start with.",
     default = true
