@@ -13,7 +13,10 @@ python3 generate_patches_readme.py <owner/repo> <branch> [patches-list.json] [RE
 import json
 import re
 import sys
-from html import escape
+import urllib.error
+import urllib.request
+from concurrent.futures import ThreadPoolExecutor
+from html import escape, unescape
 from pathlib import Path
 
 #
@@ -21,6 +24,18 @@ from pathlib import Path
 # Set this to true if you want to display app icons in your readme patches list.
 #
 INCLUDE_APP_ICONS = False
+
+#
+# Icons to use instead of the Play Store icon, keyed by package name.
+# Add an icon here for apps that have no icon, such as apps not on the Play Store,
+# or to replace an icon. The icon can be a URL, or a path relative to README.md
+# and PATCHES.md such as ".github/assets/my-app-icon.svg".
+# The "universal" entry is the icon of the universal patches.
+#
+ICON_OVERRIDES = {
+    "universal": ".github/assets/universal-icon.svg",
+    # "com.example.app": "https://example.com/icon.png",
+}
 
 
 if len(sys.argv) < 3:
@@ -40,6 +55,9 @@ owner, repo = repo_full.split("/", 1)
 
 # Redirects /<package name> to the Play Store icon of the app, a 404 if the Play Store does not have it.
 PLAY_STORE_ICON_URL = "https://publicmetadata.co.uk"
+
+# Icon of apps the Play Store does not have. Relative to README.md and PATCHES.md.
+BLANK_ICON_PATH = ".github/assets/blank-app-icon.svg"
 
 with open(json_path, encoding="utf-8") as f:
     data = json.load(f)
@@ -92,13 +110,93 @@ def play_store_link(package_name):
 
 
 def app_icon(package_name, size):
-    """Play Store icon of the app.
+    """Icon of the app, the "universal" override for the universal patches (no package
+    name), or an empty string if icons are off or there is no icon.
 
-    The alt text is empty because the app name is always next to the icon, and so an
-    app the Play Store does not have shows an empty space instead of a broken image.
+    The alt text is empty because the app name is always next to the icon.
     """
-    src = escape(f"{PLAY_STORE_ICON_URL}/{package_name}")
-    return f'<img src="{src}" width="{size}" height="{size}" alt="">'
+    if not INCLUDE_APP_ICONS:
+        return ""
+    src = icons.get(package_name) if package_name else ICON_OVERRIDES.get("universal")
+    if not src:
+        return ""
+    return f'<img src="{escape(src)}" width="{size}" height="{size}" alt="">'
+
+
+class _NoRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """Makes a redirect raise an HTTPError instead of being followed."""
+
+    def redirect_request(self, *args, **kwargs):
+        return None
+
+
+_no_redirect_opener = urllib.request.build_opener(_NoRedirectHandler)
+
+
+def icon_api_status(url):
+    """HTTP status of the icon API for a URL, or None if the request failed."""
+    # Cloudflare rejects the default Python user agent with a 403.
+    request = urllib.request.Request(
+        url, method="HEAD", headers={"User-Agent": "patches-readme-generator"}
+    )
+    try:
+        with _no_redirect_opener.open(request, timeout=15) as response:
+            return response.status
+    except urllib.error.HTTPError as ex:
+        # Redirects and error responses are raised, the status is the result.
+        return ex.code
+    except OSError as ex:
+        # Network failures, including timeouts.
+        sys.stderr.write(f"Icon lookup failed for {url}: {ex}\n")
+        return None
+
+
+def existing_icons(readme_text):
+    """Icon of each package in the README index table, keyed by package name."""
+    found = {}
+    for line in readme_text.splitlines():
+        img = re.search(r'<img src="([^"]*)"', line)
+        package = re.search(r"\[`([^`]+)`\]\(https://play\.google\.com/", line)
+        if img and package:
+            found[unescape(package.group(1))] = unescape(img.group(1))
+    return found
+
+
+def resolve_icon(package_name, existing):
+    """Icon of an app, or None if it could not be looked up.
+
+    An icon in ICON_OVERRIDES is always used. Otherwise an icon already in the README
+    is kept without a lookup: a verified icon, an icon added by hand, or the blank
+    icon of an app the icon API does not have. Only apps without an icon are looked
+    up, and None leaves the app without an icon so the next run looks it up again.
+    """
+    override = ICON_OVERRIDES.get(package_name)
+    if override:
+        return override
+
+    current = existing.get(package_name)
+    if current:
+        return current
+
+    api_url = f"{PLAY_STORE_ICON_URL}/{package_name}"
+    status = icon_api_status(api_url)
+    if status is not None and 300 <= status < 400:
+        print(f"Found icon for {package_name}")
+        return api_url
+    if status == 404:
+        print(f"No icon for {package_name}, using the blank icon")
+        return BLANK_ICON_PATH
+
+    # Other statuses, such as a Cloudflare 403 or a server error, may be temporary.
+    sys.stderr.write(f"Icon lookup failed for {package_name} (HTTP {status}), will retry next run\n")
+    return None
+
+
+def resolve_icons(package_names, existing):
+    """Icon of each package, missing icons looked up in parallel."""
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        resolved = executor.map(lambda name: resolve_icon(name, existing), package_names)
+        return dict(zip(package_names, resolved))
 
 
 def app_anchor(app_name, package_name):
@@ -170,8 +268,9 @@ def versions_line(targets):
 def index_row(index, app_name, package_name, count, labels):
     """One row of the compact README index table."""
     app_cell = f"[**{escape(app_name, quote=False)}**](PATCHES.md#{app_anchor(app_name, package_name)})"
-    if INCLUDE_APP_ICONS and package_name:
-        app_cell = f"{app_icon(package_name, 24)} {app_cell}"
+    icon = app_icon(package_name, 24)
+    if icon:
+        app_cell = f"{icon} {app_cell}"
     version_cell = ", ".join(f"`{escape(label)}`" for label in labels) if labels else "—"
     package_cell = (
         f"[`{escape(package_name, quote=False)}`]({play_store_link(package_name)})"
@@ -211,6 +310,15 @@ def build_readme_section():
     return "\n".join(lines)
 
 
+def icon_lines(package_name):
+    """Icon below an app section heading, or nothing if there is no icon.
+
+    Not in the heading, which would change its anchor.
+    """
+    icon = app_icon(package_name, 48)
+    return [icon, ""] if icon else []
+
+
 def build_patches_doc():
     """Build the full PATCHES.md reference with one section per app."""
     sections = [
@@ -228,10 +336,7 @@ def build_patches_doc():
         patches = list(entry["patches"].values())
         sections.append(f"## {entry['name']} ({package_name})")
         sections.append("")
-        if INCLUDE_APP_ICONS:
-            # Not in the heading, which would change its anchor.
-            sections.append(app_icon(package_name, 48))
-            sections.append("")
+        sections.extend(icon_lines(package_name))
 
         versions = versions_line(entry["targets"])
         if versions:
@@ -246,6 +351,7 @@ def build_patches_doc():
     if universal:
         sections.append("## Universal")
         sections.append("")
+        sections.extend(icon_lines(""))
         sections.append(patches_table(list(universal.values())))
         sections.append("")
 
@@ -259,6 +365,12 @@ total = sum(len(entry["patches"]) for entry in by_pkg.values()) + len(universal)
 sorted_packages = sorted(by_pkg.items(), key=lambda item: item[1]["name"].lower())
 
 readme = readme_path.read_text(encoding="utf-8")
+
+icons = (
+    resolve_icons([package_name for package_name, _ in sorted_packages], existing_icons(readme))
+    if INCLUDE_APP_ICONS
+    else {}
+)
 
 # Marker pattern matches both <!-- PATCHES_START --> and <!-- PATCHES_START EXPANDED -->.
 START_PATTERN = r"<!-- PATCHES_START(?:\s+EXPANDED)?\s*-->"

@@ -46,7 +46,8 @@ To start using this template, follow these steps:
    patches after yourself ("UserXYZ Morphe patches"). See the [NOTICE](NOTICE) for details. 
 7. (Optional): Add `patches-bundle.png` to the project if you want a custom icon to show in
    Morphe Manager instead of your GitHub profile avatar.
-8. (Optional): Sign your releases, so Morphe Manager refuses a release that was changed or swapped after you published it:
+8. (Optional): Set `INCLUDE_APP_ICONS = True` in [generate_patches_readme.py](.github/scripts/generate_patches_readme.py) to show app icons in the generated patches list.
+9. (Optional): Sign your releases, so Morphe Manager refuses a release that was changed or swapped after you published it:
    1. Run `./gradlew generateSigningKey`. It creates `morphe-signing.pub` and `morphe-signing.key`.
    2. Commit `morphe-signing.pub`. Never commit `morphe-signing.key`, it is already ignored by git.
    3. Add the content of `morphe-signing.key` as the `MORPHE_SIGNING_KEY` secret in your repo
