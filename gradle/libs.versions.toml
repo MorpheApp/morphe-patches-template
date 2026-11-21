@@ -3,9 +3,15 @@ morphe-patcher = "2.4.0"
 #noinspection GradleDependency
 smali = "5eaff5a2c9"
 gson = "2.15.0"
+animalsniffer = "2.0.1"
+android-api-signature = "8.0.0_r2"
 
 [libraries]
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+android-api-signature = { module = "net.sf.androidscents.signature:android-api-level-26", version.ref = "android-api-signature" }
 # Gradle plugins adds the dependency during build, this declaration is here only for dependabot to provide updates.
 #noinspection UnusedVersionCatalogEntry
 morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-patcher" }
+
+[plugins]
+animalsniffer = { id = "ru.vyarus.animalsniffer", version.ref = "animalsniffer" }

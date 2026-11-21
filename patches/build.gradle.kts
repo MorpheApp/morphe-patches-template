@@ -1,3 +1,8 @@
+plugins {
+    // Fails the build if patch code uses JDK APIs that do not exist on Android.
+    alias(libs.plugins.animalsniffer)
+}
+
 group = "app.template"
 
 patches {
@@ -20,6 +25,14 @@ val patchListGeneratorClasspath = configurations.create("patchListGeneratorClass
 dependencies {
     compileOnly(libs.gson)
     patchListGeneratorClasspath(libs.gson)
+
+    // Android API level 26 is the minimum API the patches are compiled for (see buildAndroid).
+    signature(libs.android.api.signature) { artifact { type = "signature" } }
+}
+
+animalsniffer {
+    // Only the main source set ships in the patches file.
+    sourceSets = listOf(project.sourceSets["main"])
 }
 
 tasks {
@@ -30,6 +43,11 @@ tasks {
 
         classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
         mainClass.set("util.PatchListGeneratorKt")
+    }
+
+    // The check task already runs it, but buildAndroid does not depend on check.
+    named("buildAndroid") {
+        dependsOn("animalsnifferMain")
     }
 
     // Used by gradle-semantic-release-plugin.
