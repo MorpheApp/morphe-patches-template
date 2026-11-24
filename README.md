@@ -18,11 +18,12 @@ Click the button below, or manually add this repo url to Morphe Manager: https:/
 
 ## 🩹 Patches list
 
-<!-- PATCHES_START EXPANDED -->
+<!-- PATCHES_START -->
 
 <!-- Do not modify this section by hand. The patch list is generated when release.yml creates a new release.
      
-     If you wish for the patches list to be collapsed, then remove the word 'EXPANDED' from the comment tag above.
+     This section shows one row for each app. The details of each patch are in PATCHES.md,
+     which is generated at the same time.
 
      If you wish to manually keep this list updated then remove the PATCHES_START and PATCHES_END 
      comment blocks entirely. -->
@@ -80,7 +81,7 @@ To develop and release your Patches using this template:
   If you need something custom with your releases then modify the existing `release.yml`
   and `.releaserc` instead of writing everything new from scratch.
 - Do not manually edit or manually commit any generated files such as: `patches-list.json`,
-  `patches-bundle.json`, `CHANGELOG.md`.  These files will be automatically updated by `release.yml`.
+  `patches-bundle.json`, `PATCHES.md`, `CHANGELOG.md`.  These files will be automatically updated by `release.yml`.
 - Do not force push any semantic release commits as that will break all future releases.
   If you need to fix a broken release, it's always easiest to create a new release instead of 
   fixing an existing release.

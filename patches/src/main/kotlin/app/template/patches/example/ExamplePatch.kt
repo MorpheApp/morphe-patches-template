@@ -1,3 +1,7 @@
+//
+// TODO: Delete this patch and the example patch extension code.
+//
+
 package app.template.patches.example
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions

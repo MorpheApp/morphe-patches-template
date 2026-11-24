@@ -63,10 +63,18 @@ with open(json_path, encoding="utf-8") as f:
     data = json.load(f)
 
 
-# Group patches by package; patches with no compatiblePackages are universal.
+# App name suffix of each form factor. Mobile and unspecified have no suffix.
+FORM_FACTORS = {
+    "TV": "Android TV",
+    "WEARABLE": "Wear OS",
+    "AUTOMOTIVE": "Android Automotive",
+}
+
+# Group patches by package and form factor; patches with no compatiblePackages are universal.
+# The same package name can be used by different apps for each form factor.
 # JSON structure: compatiblePackages is a list of objects with
-# { packageName, name, targets: [{ version, isExperimental, description }] }
-by_pkg = {}  # packageName -> { name, patches, targets }
+# { packageName, name, formFactor, targets: [{ version, isExperimental, description }] }
+by_pkg = {}  # (packageName, form factor suffix) -> { name, package, patches, targets }
 universal = {}
 
 for patch in data["patches"]:
@@ -80,28 +88,31 @@ for patch in data["patches"]:
     for pkg_entry in compatible_packages:
         package_name = pkg_entry["packageName"]
         app_name = pkg_entry.get("name") or package_name
-        if package_name not in by_pkg:
-            by_pkg[package_name] = {
-                "name": app_name,
+        suffix = FORM_FACTORS.get(pkg_entry.get("formFactor"))
+        key = (package_name, suffix)
+        if key not in by_pkg:
+            by_pkg[key] = {
+                "name": f"{app_name} ({suffix})" if suffix else app_name,
+                "package": package_name,
                 "patches": {},
-                "targets": pkg_entry.get("targets", []),
+                "targets": pkg_entry.get("targets") or [],
             }
 
         # Deduplicate patches that appear across multiple packages.
-        if patch["name"] not in by_pkg[package_name]["patches"]:
-            by_pkg[package_name]["patches"][patch["name"]] = patch
+        if patch["name"] not in by_pkg[key]["patches"]:
+            by_pkg[key]["patches"][patch["name"]] = patch
 
 
 def anchor(name):
     """Convert a heading to a GitHub-compatible anchor slug (github-slugger rules).
 
-    Spaces become hyphens, then all non-word characters (dots, parens, slashes,
-    etc.) are removed, so `## 1.1.1.1 (com.foo.bar)` anchors as `#1111-comfoobar`.
+    All characters except word characters, hyphens and spaces (dots, parens,
+    slashes, etc.) are removed, then each space becomes a hyphen, so
+    `## 1.1.1.1 (com.foo.bar)` anchors as `#1111-comfoobar`. Like GitHub, runs of
+    hyphens are kept and nothing is trimmed: `## Foo - Bar` anchors as `#foo---bar`.
     """
-    slug = re.sub(r"\s+", "-", name.lower())
-    slug = re.sub(r"[^\w\-]+", "", slug)
-    slug = re.sub(r"-+", "-", slug)
-    return slug.strip("-")
+    slug = re.sub(r"[^\w\- ]", "", name.lower())
+    return slug.replace(" ", "-")
 
 
 def play_store_link(package_name):
@@ -200,8 +211,9 @@ def resolve_icons(package_names, existing):
 
 
 def app_anchor(app_name, package_name):
-    """Unique anchor for an app section heading: `## Name (package)`."""
-    return anchor(f"{app_name} ({package_name})")
+    """Unique anchor for an app section heading: `## Name (package)`, or `## Name`
+    for the universal patches, which have no package."""
+    return anchor(f"{app_name} ({package_name})" if package_name else app_name)
 
 
 def version_labels(targets):
@@ -214,6 +226,19 @@ def version_labels(targets):
         label = f"experimental {version}" if target.get("isExperimental") else version
         labels.append(label)
     return labels
+
+
+def count_label(count, singular, plural):
+    """Count followed by its noun, such as "1 patch" or "2 patches"."""
+    return f"{count} {singular if count == 1 else plural}"
+
+
+def totals_label():
+    """Total patch and app counts."""
+    return (
+        f"**{count_label(total, 'patch', 'patches')}** across "
+        f"**{count_label(len(sorted_packages), 'app', 'apps')}**"
+    )
 
 
 def clean_description(text):
@@ -236,7 +261,7 @@ def options_summary(options, visible=3):
 
     shown = titles[:visible]
     remaining = len(titles) - len(shown)
-    summary = ", ".join(escape(title, quote=False) for title in shown)
+    summary = ", ".join(markdown_cell(clean_description(title)) for title in shown)
     if remaining > 0:
         summary += f", +{remaining} more"
     return f"<br><sub>Options: {summary}</sub>"
@@ -252,7 +277,7 @@ def patches_table(patches):
     for patch in sorted(patches, key=lambda p: p["name"]):
         description = clean_description(patch.get("description") or "")
         details = markdown_cell(description) + options_summary(patch.get("options") or [])
-        rows.append(f"| **{escape(patch['name'], quote=False)}** | {details} |")
+        rows.append(f"| **{markdown_cell(patch['name'])}** | {details} |")
 
     return "\n".join(rows)
 
@@ -267,7 +292,7 @@ def versions_line(targets):
 
 def index_row(index, app_name, package_name, count, labels):
     """One row of the compact README index table."""
-    app_cell = f"[**{escape(app_name, quote=False)}**](PATCHES.md#{app_anchor(app_name, package_name)})"
+    app_cell = f"[**{markdown_cell(app_name)}**](PATCHES.md#{app_anchor(app_name, package_name)})"
     icon = app_icon(package_name, 24)
     if icon:
         app_cell = f"{icon} {app_cell}"
@@ -285,20 +310,20 @@ def build_readme_section():
     lines = [
         f"> **[v{ver}](https://github.com/{owner}/{repo}/releases/tag/v{ver})**"
         f"&nbsp;&nbsp;&middot;&nbsp;&nbsp;`{branch}`&nbsp;&nbsp;&middot;&nbsp;&nbsp;"
-        f"**{total} patches** across **{len(sorted_packages)} apps**"
+        f"{totals_label()}"
         f"&nbsp;&nbsp;&middot;&nbsp;&nbsp;[Full details](PATCHES.md)",
         "",
         "| # | App | Patches | Version | Package |",
         "|---|---|---|---|---|",
     ]
 
-    for index, (package_name, entry) in enumerate(sorted_packages, start=1):
+    for index, entry in enumerate(sorted_packages, start=1):
         patches = list(entry["patches"].values())
         lines.append(
             index_row(
                 index,
                 entry["name"],
-                package_name,
+                entry["package"],
                 len(patches),
                 version_labels(entry["targets"]),
             )
@@ -325,14 +350,15 @@ def build_patches_doc():
         "# Patches",
         "",
         f"> Generated from `patches-list.json` — **v{ver}** (`{branch}`) · "
-        f"**{total} patches** across **{len(sorted_packages)} apps** · "
+        f"{totals_label()} · "
         f"back to [README](README.md)",
         "",
         "---",
         "",
     ]
 
-    for package_name, entry in sorted_packages:
+    for entry in sorted_packages:
+        package_name = entry["package"]
         patches = list(entry["patches"].values())
         sections.append(f"## {entry['name']} ({package_name})")
         sections.append("")
@@ -362,27 +388,45 @@ def build_patches_doc():
 raw_ver = data["version"]
 ver = raw_ver.lstrip("v")
 total = sum(len(entry["patches"]) for entry in by_pkg.values()) + len(universal)
-sorted_packages = sorted(by_pkg.items(), key=lambda item: item[1]["name"].lower())
+sorted_packages = sorted(by_pkg.values(), key=lambda entry: entry["name"].lower())
 
 readme = readme_path.read_text(encoding="utf-8")
 
+# Replace the template links if present.
+readme = readme.replace(
+    "https://morphe.software/add-source?github=xyz-user/xyz-patches",
+    f"https://morphe.software/add-source?github={repo_full}",
+)
+readme = readme.replace("https://github.com/xyz-user/xyz-patches", f"https://github.com/{repo_full}")
+
 icons = (
-    resolve_icons([package_name for package_name, _ in sorted_packages], existing_icons(readme))
+    resolve_icons(
+        # The same package can be listed for more than one form factor.
+        list(dict.fromkeys(entry["package"] for entry in sorted_packages)),
+        existing_icons(readme),
+    )
     if INCLUDE_APP_ICONS
     else {}
 )
 
-# Marker pattern matches both <!-- PATCHES_START --> and <!-- PATCHES_START EXPANDED -->.
+# EXPANDED has no effect, but the README of older projects can still have it.
 START_PATTERN = r"<!-- PATCHES_START(?:\s+EXPANDED)?\s*-->"
 END_MARKER = "<!-- PATCHES_END -->"
 
 marker_match = re.search(START_PATTERN, readme)
 
+if not marker_match and END_MARKER not in readme:
+    # Both markers were removed, so the README patches list is updated by hand.
+    readme_path.write_text(readme, encoding="utf-8")
+    patches_path.write_text(build_patches_doc(), encoding="utf-8")
+    print(f"No patches list markers in {readme_path}, only wrote {patches_path}")
+    sys.exit(0)
+
 if not marker_match or END_MARKER not in readme:
-    # Fallback: print to stdout so CI can catch the issue.
+    # Only one marker is present. Print to stdout so CI can catch the issue.
     print(build_readme_section())
     sys.stderr.write(
-        f"Markers <!-- PATCHES_START [EXPANDED] --> / {END_MARKER} not found in {readme_path}. "
+        f"Markers <!-- PATCHES_START --> / {END_MARKER} not found in {readme_path}. "
         "Printed to stdout instead.\n"
     )
     sys.exit(1)
@@ -390,9 +434,11 @@ if not marker_match or END_MARKER not in readme:
 actual_start = marker_match.group(0)
 
 generated = build_readme_section()
+# A function replacement inserts the section as is: a string replacement would treat
+# backslashes in it (e.g. in an app name) as regex escapes.
 new_readme = re.sub(
     rf"{START_PATTERN}.*?{re.escape(END_MARKER)}",
-    f"{actual_start}\n{generated}\n{END_MARKER}",
+    lambda _: f"{actual_start}\n{generated}\n{END_MARKER}",
     readme,
     flags=re.DOTALL,
 )
