@@ -391,9 +391,11 @@ if not marker_match or END_MARKER not in readme:
 actual_start = marker_match.group(0)
 
 generated = build_readme_section()
+# A function replacement inserts the section as is: a string replacement would treat
+# backslashes in it (e.g. in an app name) as regex escapes.
 new_readme = re.sub(
     rf"{START_PATTERN}.*?{re.escape(END_MARKER)}",
-    f"{actual_start}\n{generated}\n{END_MARKER}",
+    lambda _: f"{actual_start}\n{generated}\n{END_MARKER}",
     readme,
     flags=re.DOTALL,
 )
