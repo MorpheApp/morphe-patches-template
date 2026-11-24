@@ -95,13 +95,13 @@ for patch in data["patches"]:
 def anchor(name):
     """Convert a heading to a GitHub-compatible anchor slug (github-slugger rules).
 
-    Spaces become hyphens, then all non-word characters (dots, parens, slashes,
-    etc.) are removed, so `## 1.1.1.1 (com.foo.bar)` anchors as `#1111-comfoobar`.
+    All characters except word characters, hyphens and spaces (dots, parens,
+    slashes, etc.) are removed, then each space becomes a hyphen, so
+    `## 1.1.1.1 (com.foo.bar)` anchors as `#1111-comfoobar`. Like GitHub, runs of
+    hyphens are kept and nothing is trimmed: `## Foo - Bar` anchors as `#foo---bar`.
     """
-    slug = re.sub(r"\s+", "-", name.lower())
-    slug = re.sub(r"[^\w\-]+", "", slug)
-    slug = re.sub(r"-+", "-", slug)
-    return slug.strip("-")
+    slug = re.sub(r"[^\w\- ]", "", name.lower())
+    return slug.replace(" ", "-")
 
 
 def play_store_link(package_name):
@@ -200,8 +200,9 @@ def resolve_icons(package_names, existing):
 
 
 def app_anchor(app_name, package_name):
-    """Unique anchor for an app section heading: `## Name (package)`."""
-    return anchor(f"{app_name} ({package_name})")
+    """Unique anchor for an app section heading: `## Name (package)`, or `## Name`
+    for the universal patches, which have no package."""
+    return anchor(f"{app_name} ({package_name})" if package_name else app_name)
 
 
 def version_labels(targets):
@@ -390,9 +391,11 @@ if not marker_match or END_MARKER not in readme:
 actual_start = marker_match.group(0)
 
 generated = build_readme_section()
+# A function replacement inserts the section as is: a string replacement would treat
+# backslashes in it (e.g. in an app name) as regex escapes.
 new_readme = re.sub(
     rf"{START_PATTERN}.*?{re.escape(END_MARKER)}",
-    f"{actual_start}\n{generated}\n{END_MARKER}",
+    lambda _: f"{actual_start}\n{generated}\n{END_MARKER}",
     readme,
     flags=re.DOTALL,
 )
