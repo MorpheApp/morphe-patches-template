@@ -58,7 +58,6 @@
         "assets": [
           "CHANGELOG.md",
           "gradle.properties",
-          "patches-bundle.json",
           "patches-list.json",
           "README.md",
           "PATCHES.md"
@@ -75,6 +74,14 @@
           }
         ],
         "successComment": false
+      }
+    ],
+    [
+      "@semantic-release/exec",
+      {
+        "successCmd": "git add patches-bundle.json \
+          && git commit -m \"chore: Publish v${nextRelease.version} in patches-bundle.json [skip ci]\" \
+          && git push origin HEAD:${branch.name}"
       }
     ],
     [
