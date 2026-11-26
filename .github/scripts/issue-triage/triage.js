@@ -2,7 +2,8 @@
 //
 // - New issues get a title that matches the body.
 // - Issues without enough information to act on are closed, with a comment that asks for the details.
-// - The first edit or comment of the author after that gets one more check, which can reopen the issue.
+// - An edit or comment of the author after that gets the issue checked again, which can reopen it.
+//   This happens at most MAX_RECHECKS times.
 //
 // The issue text is written by anyone, so the AI reply is treated as untrusted.
 // Every field is validated, and comments are built only from the fixed text in this file.
@@ -29,10 +30,13 @@ const MAX_COMMENTS = 5;
 const BOT_LOGIN = 'github-actions[bot]';
 const MAINTAINER_ASSOCIATIONS = ['OWNER', 'MEMBER', 'COLLABORATOR'];
 
-// Hidden markers that start the comment posted when an issue is closed. They hold the whole state:
-// CLOSED_MARKER means the one re-check is still available, RECHECKED_MARKER means it was used.
-const CLOSED_MARKER = '<!-- issue-triage:closed -->';
-const RECHECKED_MARKER = '<!-- issue-triage:rechecked -->';
+// How often a closed issue is checked again after changes of its author. Each check is an AI request.
+const MAX_RECHECKS = 3;
+
+// A hidden marker starts the comment posted when an issue is closed. It holds the whole state,
+// which is the number of re-checks used so far.
+const closedMarker = (rechecks) => `<!-- issue-triage:closed rechecks=${rechecks} -->`;
+const CLOSED_MARKER_PATTERN = /^<!-- issue-triage:closed rechecks=(\d+) -->/;
 
 const TITLE_PREFIXES = { bug: 'bug', feature: 'feat', question: 'question' };
 
@@ -251,19 +255,18 @@ function parseModels(value) {
 function closeComment(missing) {
   const keys = missing.length > 0 ? missing : DEFAULT_MISSING_INFO;
   return [
-    CLOSED_MARKER,
+    closedMarker(0),
     'This issue was closed automatically because it does not have enough information to act on. Please add:',
     '',
     ...keys.map((key) => `- ${MISSING_INFO_TEXT[key]}`),
     '',
     'Edit the issue or reply here, and it will be checked again and reopened if there is enough information.',
-    '**It is only checked again once**, so please add everything in a single edit or reply.',
   ].join('\n');
 }
 
-const STILL_CLOSED_COMMENT =
-  'This issue was checked again and still does not have enough information, so it stays closed. ' +
-  'It will not be checked again automatically. A maintainer can reopen it after more details are added.';
+const LAST_RECHECK_COMMENT =
+  'This issue still does not appear to have enough information. ' +
+  'A maintainer can reopen this when the needed information is provided.';
 
 function escapeHtml(text) {
   return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -340,17 +343,16 @@ async function findTask({ github, context, core, owner, repo, issue, includeMain
     per_page: 100,
   });
   const botComments = comments.filter((comment) => comment.user?.login === BOT_LOGIN);
-  const closedComment = botComments.find((comment) => comment.body.startsWith(CLOSED_MARKER));
+  const closedComment = botComments.find((comment) => CLOSED_MARKER_PATTERN.test(comment.body));
 
   if (issue.state === 'open') {
     if (!manual && !isNewIssue) return skip('is open');
     // An issue is only closed once. A maintainer may have reopened it.
-    const closedBefore =
-      Boolean(closedComment) || botComments.some((comment) => comment.body.startsWith(RECHECKED_MARKER));
-    return { task: 'triage', closedBefore, comments };
+    return { task: 'triage', closedBefore: Boolean(closedComment), comments };
   }
 
-  if (!closedComment) return skip('is closed and has no re-check available');
+  const rechecks = Number(CLOSED_MARKER_PATTERN.exec(closedComment?.body || '')?.[1] ?? MAX_RECHECKS);
+  if (rechecks >= MAX_RECHECKS) return skip('is closed and has no re-check available');
   if (issue.state_reason !== 'not_planned') return skip('is not closed as not planned');
 
   // An issue that a person closed again stays closed.
@@ -363,7 +365,7 @@ async function findTask({ github, context, core, owner, repo, issue, includeMain
   const lastClose = events.filter((event) => event.event === 'closed').pop();
   if (lastClose?.actor?.login !== BOT_LOGIN) return skip('was not last closed by the triage');
 
-  return { task: 'recheck', closedComment, comments };
+  return { task: 'recheck', closedComment, rechecks, comments };
 }
 
 async function run({ github, context, core, fetchImpl, retryDelayMs }) {
@@ -375,7 +377,7 @@ async function run({ github, context, core, fetchImpl, retryDelayMs }) {
   const includeMaintainers = process.env.INCLUDE_MAINTAINERS === 'true';
 
   const { data: issue } = await github.rest.issues.get({ owner, repo, issue_number: issueNumber });
-  const { task, closedBefore, closedComment, comments } = await findTask({
+  const { task, closedBefore, closedComment, rechecks, comments } = await findTask({
     github,
     context,
     core,
@@ -424,22 +426,23 @@ async function run({ github, context, core, fetchImpl, retryDelayMs }) {
   }
 
   if (task === 'recheck') {
-    // Use up the re-check first, so a failure of a later step cannot cause a second one.
+    const used = rechecks + 1;
+    // Count the re-check first, so a failure of a later step cannot give an extra one.
     actions.unshift({
-      description: 'Use up the one re-check',
+      description: `Use re-check ${used} of ${MAX_RECHECKS}`,
       run: () =>
         github.rest.issues.updateComment({
           owner,
           repo,
           comment_id: closedComment.id,
-          body: closedComment.body.replace(CLOSED_MARKER, RECHECKED_MARKER),
+          body: closedComment.body.replace(CLOSED_MARKER_PATTERN, closedMarker(used)),
         }),
     });
-    actions.push(
-      close
-        ? { description: 'Keep closed and comment', run: () => comment(STILL_CLOSED_COMMENT) }
-        : { description: 'Reopen', run: () => update({ state: 'open' }) }
-    );
+    if (!close) {
+      actions.push({ description: 'Reopen', run: () => update({ state: 'open' }) });
+    } else if (used >= MAX_RECHECKS) {
+      actions.push({ description: 'Keep closed and comment', run: () => comment(LAST_RECHECK_COMMENT) });
+    }
   } else if (close && issue.state === 'open' && !closedBefore) {
     // Comment first, so the issue is never closed without an explanation.
     actions.push({
@@ -469,8 +472,8 @@ async function run({ github, context, core, fetchImpl, retryDelayMs }) {
 module.exports = run;
 Object.assign(module.exports, {
   DEFAULT_MODELS,
-  CLOSED_MARKER,
-  RECHECKED_MARKER,
+  MAX_RECHECKS,
+  closedMarker,
   askModels,
   buildMessages,
   hasEvidence,

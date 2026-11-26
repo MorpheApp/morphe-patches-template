@@ -28,7 +28,7 @@ jobs:
       github.event.issue.state == 'closed' &&
       github.event.issue.state_reason == 'not_planned' &&
       github.event.sender.login == github.event.issue.user.login)
-    # One run at a time for each issue, so an issue cannot be re-checked twice.
+    # One run at a time for each issue, so the number of re-checks is counted correctly.
     concurrency:
       group: issue-triage-${{ github.event.issue.number || inputs.issue_number }}
     runs-on: ubuntu-latest

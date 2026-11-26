@@ -68,8 +68,9 @@ AI model to help with new issues:
 
 - It rewrites titles that do not match the issue text, as `bug:`, `feat:` or `question:`.
 - It closes issues without enough information to act on, and asks the author for the missing details.
-  When the author then edits the issue or replies, it is checked **only once** more, and reopened if there is
-  enough information. Issues with logs, screenshots or other attachments are never closed.
+  When the author then edits the issue or replies, it is checked again, and reopened if there is enough
+  information. This happens at most 3 times (`MAX_RECHECKS` in [triage.js](.github/scripts/issue-triage/triage.js)).
+  Issues with logs, screenshots or other attachments are never closed.
 
 ### Setup
 
@@ -96,7 +97,7 @@ To triage an issue again, such as after a failed run, use Actions > Issue triage
 
 - OpenRouter [limits free models](https://openrouter.ai/docs/api/reference/limits) to 20 requests per minute and
   50 per day, or 1000 per day after buying at least $10 of credits. An issue normally uses one request,
-  or two if it is checked again.
+  plus one for each time it is checked again. Failed requests are retried with the fallback models.
 - Free models come and go. If runs start to fail, set `OPENROUTER_MODEL` to another model.
 - The text of issues is sent to OpenRouter and to the provider of the model, which may log it or use it
   for training. Your OpenRouter [privacy settings](https://openrouter.ai/settings/privacy) must allow the
