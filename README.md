@@ -57,7 +57,50 @@ To start using this template, follow these steps:
    Every release is signed from then on. If you lose the key or it leaks, create a new one the same way;
    users then have to confirm the new key in Morphe Manager before they get your next release.
 
+10. Set up [AI issue triage](#-ai-issue-triage), or turn it off.
+
 🎉 You are now ready to start creating patches!
+
+## 🤖 AI issue triage
+
+The [Issue triage](.github/workflows/issue_triage.yml) GitHub Action uses a free [OpenRouter](https://openrouter.ai)
+AI model to help with new issues:
+
+- It rewrites titles that do not match the issue text, as `bug:`, `feat:` or `question:`.
+- It closes issues without enough information to act on, and asks the author for the missing details.
+  When the author then edits the issue or replies, it is checked **only once** more, and reopened if there is
+  enough information. Issues with logs, screenshots or other attachments are never closed.
+
+### Setup
+
+1. Create an [OpenRouter](https://openrouter.ai) account, then create an [API key](https://openrouter.ai/settings/keys).
+2. In your repo, open Settings > Secrets and variables > Actions, and add the key as a **secret** named `OPENROUTER_API_KEY`.
+3. Check that issues are enabled in Settings > General > Features.
+
+Without the key, no issue is changed and each run only logs a warning. If you do not want AI triage, turn the
+action off in the Actions tab > Issue triage > "..." menu > Disable workflow.
+
+### Options
+
+All are optional repository **variables** (Settings > Secrets and variables > Actions > Variables):
+
+| Variable | Description |
+|---|---|
+| `OPENROUTER_MODEL` | The [model](https://openrouter.ai/models?q=free) to use. To add fallbacks, separate multiple models with commas. The default models are listed in `DEFAULT_MODELS` of [triage.js](.github/scripts/issue-triage/triage.js). |
+| `ISSUE_TRIAGE_MODE` | Set to `dry-run` to only show the planned changes in the summary of each run. The AI is still used. |
+| `ISSUE_TRIAGE_INCLUDE_MAINTAINERS` | Set to `true` to also triage issues of the repo owner, members and collaborators, which are skipped by default. Useful for testing. |
+
+To triage an issue again, such as after a failed run, use Actions > Issue triage > Run workflow.
+
+### Limits and privacy
+
+- OpenRouter [limits free models](https://openrouter.ai/docs/api/reference/limits) to 20 requests per minute and
+  50 per day, or 1000 per day after buying at least $10 of credits. An issue normally uses one request,
+  or two if it is checked again.
+- Free models come and go. If runs start to fail, set `OPENROUTER_MODEL` to another model.
+- The text of issues is sent to OpenRouter and to the provider of the model, which may log it or use it
+  for training. Your OpenRouter [privacy settings](https://openrouter.ai/settings/privacy) must allow the
+  providers of the free models.
 
 ## 🧑‍💻 Dev usage
 
