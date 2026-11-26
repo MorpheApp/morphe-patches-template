@@ -31,7 +31,7 @@ const BOT_LOGIN = 'github-actions[bot]';
 const MAINTAINER_ASSOCIATIONS = ['OWNER', 'MEMBER', 'COLLABORATOR'];
 
 // How often a closed issue is checked again after changes of its author. Each check is an AI request.
-const MAX_RECHECKS = 3;
+const MAX_RECHECKS = 2;
 
 // A hidden marker starts the comment posted when an issue is closed. It holds the whole state,
 // which is the number of re-checks used so far.

@@ -69,7 +69,7 @@ AI model to help with new issues:
 - It rewrites titles that do not match the issue text, as `bug:`, `feat:` or `question:`.
 - It closes issues without enough information to act on, and asks the author for the missing details.
   When the author then edits the issue or replies, it is checked again, and reopened if there is enough
-  information. This happens at most 3 times (`MAX_RECHECKS` in [triage.js](.github/scripts/issue-triage/triage.js)).
+  information. This happens at most 2 times (`MAX_RECHECKS` in [triage.js](.github/scripts/issue-triage/triage.js)).
   Issues with logs, screenshots or other attachments are never closed.
 
 ### Setup
