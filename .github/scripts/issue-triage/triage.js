@@ -277,6 +277,32 @@ async function writeSummary(core, heading, lines) {
 }
 
 /**
+ * Whether the author of the issue is the owner, a member or a collaborator of the repo.
+ * The author association alone is not enough: for the workflow token, a member of an organization
+ * with a private membership does not show as a member. So the access to the repo is checked too.
+ */
+async function isMaintainer({ github, core, owner, repo, issue }) {
+  if (MAINTAINER_ASSOCIATIONS.includes(issue.author_association)) {
+    core.info(`#${issue.number} was opened by a maintainer (${issue.author_association})`);
+    return true;
+  }
+
+  try {
+    const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
+      owner,
+      repo,
+      username: issue.user.login,
+    });
+    core.info(`Access of the author: ${data.permission}, association: ${issue.author_association}`);
+    return data.permission === 'admin' || data.permission === 'write';
+  } catch (error) {
+    if (error.status !== 404) throw error;
+    core.info(`The author of #${issue.number} has no access to the repo`);
+    return false;
+  }
+}
+
+/**
  * Decides what the event asks for: "triage" a new issue, "recheck" a closed one, or null for nothing.
  * Also returns the bot comment that holds the re-check state.
  */
@@ -292,8 +318,8 @@ async function findTask({ github, context, core, owner, repo, issue, includeMain
   // A manual run is a request of a maintainer, so it also triages issues that are skipped otherwise.
   if (!manual) {
     if (issue.user?.type === 'Bot') return skip('was opened by a bot');
-    if (!includeMaintainers && MAINTAINER_ASSOCIATIONS.includes(issue.author_association)) {
-      return skip(`was opened by a maintainer (${issue.author_association})`);
+    if (!includeMaintainers && (await isMaintainer({ github, core, owner, repo, issue }))) {
+      return skip('was opened by a maintainer');
     }
   }
 
