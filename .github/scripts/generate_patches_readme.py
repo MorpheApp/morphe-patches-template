@@ -120,7 +120,7 @@ def play_store_link(package_name):
     return f"https://play.google.com/store/apps/details?id={package_name}"
 
 
-def app_icon(package_name, size):
+def app_icon(package_name, size, *, inline=False):
     """Icon of the app, the "universal" override for the universal patches (no package
     name), or an empty string if icons are off or there is no icon.
 
@@ -131,7 +131,9 @@ def app_icon(package_name, size):
     src = icons.get(package_name) if package_name else ICON_OVERRIDES.get("universal")
     if not src:
         return ""
-    return f'<img src="{escape(src)}" width="{size}" height="{size}" alt="">'
+    # GitHub preserves this attribute when rendering inline images.
+    alignment = ' align="absmiddle"' if inline else ""
+    return f'<img src="{escape(src)}" width="{size}" height="{size}"{alignment} alt="">'
 
 
 class _NoRedirectHandler(urllib.request.HTTPRedirectHandler):
@@ -293,7 +295,7 @@ def versions_line(targets):
 def index_row(index, app_name, package_name, count, labels):
     """One row of the compact README index table."""
     app_cell = f"[**{markdown_cell(app_name)}**](PATCHES.md#{app_anchor(app_name, package_name)})"
-    icon = app_icon(package_name, 24)
+    icon = app_icon(package_name, 24, inline=True)
     if icon:
         app_cell = f"{icon} {app_cell}"
     version_cell = ", ".join(f"`{escape(label)}`" for label in labels) if labels else "—"
