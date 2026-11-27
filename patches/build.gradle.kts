@@ -44,6 +44,8 @@ animalsniffer {
 }
 
 tasks {
+    val patchesFile = jar.flatMap { it.archiveFile }
+
     register<JavaExec>("generatePatchesList") {
         description = "Build patch with patch list"
 
@@ -51,13 +53,15 @@ tasks {
 
         classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
         mainClass.set("util.PatchListGeneratorKt")
+        argumentProviders.add(CommandLineArgumentProvider {
+            listOf(patchesFile.get().asFile.absolutePath)
+        })
     }
 
     // Runs D8 on every class in the patches file (the patches and all bundled dependencies)
     // but outputs class files instead of dex, so the check sees the code as it runs on Android,
     // after D8 has replaced methods it backports such as List.of() and Optional.isEmpty().
     val desugarPatchesClasses = register("desugarPatchesClasses") {
-        val patchesFile = jar.flatMap { it.archiveFile }
         val classpath = sourceSets["main"].compileClasspath
         val output = layout.buildDirectory.file("animalsniffer/patches-desugared.jar")
 
